@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Scan History{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <h1>📋 Scan History</h1>
+        <p>All previous APK scans — {{ scans|length }} total</p>
+    </div>
+    <a href="/scan" class="btn btn-primary">⚡ New Scan</a>
+</div>
+
+{% if scans %}
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>App Name</th>
+                <th>Scan Date</th>
+                <th>Risk Score</th>
+                <th>Grade</th>
+                <th>Critical</th>
+                <th>High</th>
+                <th>Total Issues</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in scans %}
+            <tr>
+                <td style="color:#475569;">{{ s.id }}</td>
+                <td style="font-weight:500; color:#e2e8f0;">📱 {{ s.filename }}</td>
+                <td style="color:#64748b; font-size:0.85rem;">{{ s.scan_date }}</td>
+                <td>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="width:50px; height:5px; background:#2d3148; border-radius:3px;">
+                            <div style="width:{{ s.risk_score }}%; height:100%; border-radius:3px;
+                                background:{% if s.risk_score >= 75 %}#dc2626{% elif s.risk_score >= 50 %}#ea580c{% elif s.risk_score >= 25 %}#d97706{% else %}#16a34a{% endif %};">
+                            </div>
+                        </div>
+                        <span style="font-size:0.85rem; color:#94a3b8;">{{ s.risk_score }}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge badge-{{ s.grade.lower().replace(' ', '-') }}">{{ s.grade }}</span>
+                </td>
+                <td style="color:#f87171; font-weight:600;">{{ s.critical_count }}</td>
+                <td style="color:#fb923c;">{{ s.high_count }}</td>
+                <td style="color:#94a3b8;">{{ s.total_issues }}</td>
+                <td>
+                    <div style="display:flex; gap:6px;">
+                        <a href="/results/{{ s.id }}" class="btn btn-ghost" style="padding:5px 10px; font-size:0.8rem;">View</a>
+                        <form method="POST" action="/delete/{{ s.id }}" onsubmit="return confirm('Delete this scan?')">
+                            <button type="submit" class="btn btn-danger" style="padding:5px 10px; font-size:0.8rem;">Del</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div style="text-align:center; padding:4rem; background:#1a1d27; border:1px solid #2d3148; border-radius:12px;">
+    <div style="font-size:3rem; margin-bottom:1rem;">📭</div>
+    <h3 style="color:#94a3b8; margin-bottom:8px;">No Scan History Yet</h3>
+    <p style="color:#475569; margin-bottom:1.5rem;">Start scanning APKs to build your history</p>
+    <div style="display:flex; gap:8px; justify-content:center;">
+        <a href="/demo" class="btn btn-ghost">🎮 Try Demo</a>
+        <a href="/scan" class="btn btn-primary">⚡ Scan APK</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

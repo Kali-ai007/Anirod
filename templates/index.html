@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+        <h1>🛡️ Anirod Dashboard</h1>
+        <p>Android Security Scanner — protecting users from malicious apps</p>
+    </div>
+    <div style="display:flex; gap:8px;">
+        <a href="/demo" class="btn btn-ghost">🎮 Try Demo</a>
+        <a href="/scan" class="btn btn-primary">⚡ Scan APK</a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Scans</div>
+        <div class="stat-value">{{ stats.total_scans }}</div>
+        <div class="stat-sub">APKs analyzed</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Critical Apps</div>
+        <div class="stat-value" style="color:#f87171;">{{ stats.critical_apps }}</div>
+        <div class="stat-sub">severe risk detected</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Avg Risk Score</div>
+        <div class="stat-value" style="color:#fbbf24;">{{ stats.avg_risk_score }}</div>
+        <div class="stat-sub">out of 100</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Issues Found</div>
+        <div class="stat-value" style="color:#a78bfa;">{{ stats.total_issues_found }}</div>
+        <div class="stat-sub">vulnerabilities detected</div>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:2rem;">
+    <div class="card">
+        <h2 style="font-size:1rem; margin-bottom:1rem; color:#a78bfa;">🔍 What Anirod Scans For</h2>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; gap:12px; padding:10px; background:#0f1117; border-radius:8px;">
+                <span style="font-size:1.2rem;">🔐</span>
+                <div>
+                    <div style="font-weight:600; font-size:0.9rem;">Dangerous Permissions</div>
+                    <div style="font-size:0.8rem; color:#64748b;">Camera, SMS, Location, Storage abuse</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; padding:10px; background:#0f1117; border-radius:8px;">
+                <span style="font-size:1.2rem;">💣</span>
+                <div>
+                    <div style="font-weight:600; font-size:0.9rem;">Permission Combos</div>
+                    <div style="font-size:0.8rem; color:#64748b;">Deadly combinations like Storage + Internet</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; padding:10px; background:#0f1117; border-radius:8px;">
+                <span style="font-size:1.2rem;">🔑</span>
+                <div>
+                    <div style="font-weight:600; font-size:0.9rem;">Hardcoded Secrets</div>
+                    <div style="font-size:0.8rem; color:#64748b;">API keys, passwords, tokens in code</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; padding:10px; background:#0f1117; border-radius:8px;">
+                <span style="font-size:1.2rem;">⚠️</span>
+                <div>
+                    <div style="font-weight:600; font-size:0.9rem;">Insecure Code</div>
+                    <div style="font-size:0.8rem; color:#64748b;">SSL bypass, weak encryption, SQL injection</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 style="font-size:1rem; margin-bottom:1rem; color:#a78bfa;">👥 Who Should Use Anirod?</h2>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; gap:12px; padding:10px; background:#0f1117; border-radius:8px;">
+                <span style="font-size:1.2rem;">👨‍💻</span>
+                <div>
+                    <div style="font-weight:600; font-size:0.9rem;">App Developers</div>
+                    <div style="font-size:0.8rem; color:#64748b;">Test your app before publishing</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; padding:10px; background:#0f1117; border-radius:8px;">
+                <span style="font-size:1.2rem;">🔍</span>
+                <div>
+                    <div style="font-weight:600; font-size:0.9rem;">Security Testers</div>
+                    <div style="font-size:0.8rem; color:#64748b;">Quick first-pass APK analysis</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; padding:10px; background:#0f1117; border-radius:8px;">
+                <span style="font-size:1.2rem;">🏢</span>
+                <div>
+                    <div style="font-weight:600; font-size:0.9rem;">Companies</div>
+                    <div style="font-size:0.8rem; color:#64748b;">Audit third-party apps before deployment</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; padding:10px; background:#0f1117; border-radius:8px;">
+                <span style="font-size:1.2rem;">🎓</span>
+                <div>
+                    <div style="font-weight:600; font-size:0.9rem;">Students</div>
+                    <div style="font-size:0.8rem; color:#64748b;">Learn what makes an app insecure</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h2 style="font-size:1rem;">📋 Recent Scans</h2>
+        <a href="/history" style="color:#6366f1; text-decoration:none; font-size:0.85rem;">View All →</a>
+    </div>
+
+    {% if scans %}
+    <table>
+        <thead>
+            <tr>
+                <th>App Name</th>
+                <th>Date</th>
+                <th>Risk Score</th>
+                <th>Grade</th>
+                <th>Issues</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in scans %}
+            <tr>
+                <td style="font-weight:500;">📱 {{ s.filename }}</td>
+                <td style="color:#64748b;">{{ s.scan_date }}</td>
+                <td>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="width:60px; height:6px; background:#2d3148; border-radius:3px;">
+                            <div style="width:{{ s.risk_score }}%; height:100%; border-radius:3px;
+                                background:{% if s.risk_score >= 75 %}#dc2626{% elif s.risk_score >= 50 %}#ea580c{% elif s.risk_score >= 25 %}#d97706{% else %}#16a34a{% endif %};">
+                            </div>
+                        </div>
+                        <span style="font-size:0.85rem;">{{ s.risk_score }}/100</span>
+                    </div>
+                </td>
+                <td><span class="badge badge-{{ s.grade.lower().replace(' ', '-') }}">{{ s.grade }}</span></td>
+                <td style="color:#94a3b8;">{{ s.total_issues }}</td>
+                <td><a href="/results/{{ s.id }}" class="btn btn-ghost" style="padding:6px 12px; font-size:0.8rem;">View →</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align:center; padding:3rem; color:#475569;">
+        <div style="font-size:3rem; margin-bottom:1rem;">🔍</div>
+        <p style="color:#94a3b8; margin-bottom:1.5rem;">No scans yet! Upload an APK or try the demo.</p>
+        <div style="display:flex; gap:8px; justify-content:center;">
+            <a href="/demo" class="btn btn-ghost">🎮 Try Demo</a>
+            <a href="/scan" class="btn btn-primary">⚡ Scan APK</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

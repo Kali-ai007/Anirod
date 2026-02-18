@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Scan Results{% endblock %}
+
+{% block extra_css %}
+<style>
+.risk-meter { height: 12px; background: #2d3148; border-radius: 6px; overflow: hidden; margin: 8px 0; }
+.risk-fill { height: 100%; border-radius: 6px; }
+.finding-card { background: #0f1117; border: 1px solid #2d3148; border-radius: 10px; padding: 1rem; margin-bottom: 0.75rem; }
+.finding-card.critical { border-left: 3px solid #dc2626; }
+.finding-card.high { border-left: 3px solid #ea580c; }
+.finding-card.medium { border-left: 3px solid #d97706; }
+.finding-card.low { border-left: 3px solid #16a34a; }
+.section-title { font-size: 1rem; font-weight: 700; color: #e2e8f0; margin: 1.5rem 0 1rem; display: flex; align-items: center; gap: 8px; }
+.count-chip { background: #2d3148; color: #94a3b8; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2rem; flex-wrap:wrap; gap:1rem;">
+    <div>
+        <h1 style="font-size:1.5rem; font-weight:700; color:#fff; margin-bottom:4px;">📱 {{ results.filename }}</h1>
+        <p style="color:#64748b;">Scanned on {{ results.scan_date }}</p>
+    </div>
+    <div style="display:flex; gap:8px;">
+        <a href="/scan" class="btn btn-primary">⚡ Scan Another</a>
+	<a href="/report/{{ scan.id }}" class="btn btn-ghost">📄 Download PDF</a>
+        <a href="/history" class="btn btn-ghost">📋 History</a>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+    <div style="display:grid; grid-template-columns:1fr auto; gap:2rem; align-items:center;">
+        <div>
+            <div style="color:#64748b; font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Risk Assessment</div>
+            <div style="font-size:3rem; font-weight:800; color:{{ results.grade_color }}; line-height:1;">
+                {{ results.risk_score }}<span style="font-size:1.5rem; color:#64748b;">/100</span>
+            </div>
+            <div class="risk-meter" style="max-width:300px; margin:12px 0;">
+                <div class="risk-fill" style="width:{{ results.risk_score }}%; background:{{ results.grade_color }};"></div>
+            </div>
+            <p style="color:#94a3b8; font-size:0.9rem;">{{ results.summary }}</p>
+        </div>
+        <div style="text-align:center;">
+            <div style="font-size:3rem; margin-bottom:8px;">
+                {% if results.grade == 'CRITICAL' %}🚨{% elif results.grade == 'HIGH RISK' %}⚠️{% elif results.grade == 'MEDIUM RISK' %}🟡{% else %}✅{% endif %}
+            </div>
+            <span class="badge badge-{{ results.grade.lower().replace(' ', '-') }}" style="font-size:0.9rem; padding:6px 16px;">
+                {{ results.grade }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.5rem;">
+    <div class="card" style="text-align:center; padding:1rem;">
+        <div style="font-size:1.5rem;">🚨</div>
+        <div style="font-size:1.75rem; font-weight:700; color:#f87171;">{{ results.counts.CRITICAL }}</div>
+        <div style="font-size:0.75rem; color:#64748b; text-transform:uppercase;">CRITICAL</div>
+    </div>
+    <div class="card" style="text-align:center; padding:1rem;">
+        <div style="font-size:1.5rem;">⚠️</div>
+        <div style="font-size:1.75rem; font-weight:700; color:#fb923c;">{{ results.counts.HIGH }}</div>
+        <div style="font-size:0.75rem; color:#64748b; text-transform:uppercase;">HIGH</div>
+    </div>
+    <div class="card" style="text-align:center; padding:1rem;">
+        <div style="font-size:1.5rem;">🟡</div>
+        <div style="font-size:1.75rem; font-weight:700; color:#fbbf24;">{{ results.counts.MEDIUM }}</div>
+        <div style="font-size:0.75rem; color:#64748b; text-transform:uppercase;">MEDIUM</div>
+    </div>
+    <div class="card" style="text-align:center; padding:1rem;">
+        <div style="font-size:1.5rem;">🟢</div>
+        <div style="font-size:1.75rem; font-weight:700; color:#4ade80;">{{ results.counts.LOW }}</div>
+        <div style="font-size:0.75rem; color:#64748b; text-transform:uppercase;">LOW</div>
+    </div>
+</div>
+
+{% if results.findings.dangerous_combos %}
+<div class="section-title">
+    💣 Dangerous Permission Combinations
+    <span class="count-chip">{{ results.findings.dangerous_combos|length }}</span>
+</div>
+{% for combo in results.findings.dangerous_combos %}
+<div class="finding-card {{ combo.risk.lower() }}">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+        <strong style="color:#e2e8f0; font-size:0.95rem;">💣 {{ combo.name }}</strong>
+        <span class="badge badge-{{ combo.risk.lower() }}">{{ combo.risk }}</span>
+    </div>
+    <p style="color:#94a3b8; font-size:0.88rem; line-height:1.6; margin-bottom:10px;">{{ combo.description }}</p>
+    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        {% for perm in combo.permissions %}
+        <span style="background:#2d3148; color:#a78bfa; padding:3px 10px; border-radius:6px; font-size:0.78rem; font-family:monospace;">{{ perm }}</span>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if results.findings.permissions %}
+<div class="section-title">
+    🔐 Dangerous Permissions
+    <span class="count-chip">{{ results.findings.permissions|length }}</span>
+</div>
+{% for perm in results.findings.permissions %}
+<div class="finding-card {{ perm.risk.lower() }}">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+        <div>
+            <strong style="color:#e2e8f0; font-size:0.9rem;">{{ perm.short_name }}</strong>
+            <span style="background:#2d3148; color:#64748b; padding:2px 8px; border-radius:6px; font-size:0.75rem; margin-left:8px;">{{ perm.category }}</span>
+        </div>
+        <span class="badge badge-{{ perm.risk.lower() }}">{{ perm.risk }}</span>
+    </div>
+    <p style="color:#94a3b8; font-size:0.85rem; line-height:1.5;">{{ perm.description }}</p>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if results.findings.secrets %}
+<div class="section-title">
+    🔑 Hardcoded Secrets Found
+    <span class="count-chip">{{ results.findings.secrets|length }}</span>
+</div>
+{% for secret in results.findings.secrets %}
+<div class="finding-card {{ secret.risk.lower() }}">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+        <strong style="color:#e2e8f0; font-size:0.9rem;">🔑 {{ secret.name }}</strong>
+        <span class="badge badge-{{ secret.risk.lower() }}">{{ secret.risk }}</span>
+    </div>
+    <p style="color:#94a3b8; font-size:0.85rem; line-height:1.5; margin-bottom:6px;">{{ secret.description }}</p>
+    <p style="color:#475569; font-size:0.78rem; font-family:monospace;">📄 {{ secret.file }} ({{ secret.occurrences }} occurrence{{ 's' if secret.occurrences > 1 else '' }})</p>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if results.findings.code_issues %}
+<div class="section-title">
+    ⚠️ Insecure Code Patterns
+    <span class="count-chip">{{ results.findings.code_issues|length }}</span>
+</div>
+{% for issue in results.findings.code_issues %}
+<div class="finding-card {{ issue.risk.lower() }}">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+        <strong style="color:#e2e8f0; font-size:0.9rem;">⚠️ {{ issue.name }}</strong>
+        <span class="badge badge-{{ issue.risk.lower() }}">{{ issue.risk }}</span>
+    </div>
+    <p style="color:#94a3b8; font-size:0.85rem; line-height:1.5; margin-bottom:6px;">{{ issue.description }}</p>
+    <p style="color:#475569; font-size:0.78rem; font-family:monospace;">📄 {{ issue.file }}</p>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if results.total_issues == 0 %}
+<div style="text-align:center; padding:3rem; background:#1a1d27; border:1px solid #2d3148; border-radius:12px;">
+    <div style="font-size:3rem; margin-bottom:1rem;">✅</div>
+    <h3 style="color:#4ade80; margin-bottom:8px;">No Issues Found!</h3>
+    <p style="color:#64748b;">This app passed all security checks.</p>
+</div>
+{% endif %}
+
+{% if results.all_permissions %}
+<div class="section-title" style="margin-top:2rem;">
+    📋 All Requested Permissions
+    <span class="count-chip">{{ results.all_permissions|length }}</span>
+</div>
+<div class="card">
+    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+        {% for perm in results.all_permissions %}
+        <span style="background:#1e2235; color:#94a3b8; padding:4px 10px; border-radius:6px; font-size:0.78rem; font-family:monospace;">{{ perm.split('.')[-1] }}</span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
