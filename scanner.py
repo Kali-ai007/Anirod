@@ -4,6 +4,7 @@ import os
 import sys
 from datetime import datetime
 from androguard.misc import AnalyzeAPK
+from ml_classifier import get_classifier
 
 DANGEROUS_PERMISSIONS = {
     "android.permission.READ_EXTERNAL_STORAGE": {"risk": "HIGH", "description": "Can read ALL files on your device including photos, videos and documents", "category": "Storage"},
@@ -141,6 +142,7 @@ class AnirodScanner:
             "urls": [],
             "malware": [],
             "taint": [],
+            "ml": None,
         }
         self.file_contents = {}
         self.all_permissions = []
@@ -162,6 +164,7 @@ class AnirodScanner:
         self._scan_urls()
         self._scan_malware()
         self._scan_taint()
+        self._scan_ml()
         results = self._build_results()
         print(f"[+] Scan complete! Risk Score: {results['risk_score']}/100")
         return results
@@ -358,6 +361,25 @@ class AnirodScanner:
                     "sink_hits": detected_sinks[path["sink"]],
                 })
 
+    def _scan_ml(self):
+        try:
+            clf = get_classifier()
+            interim = {
+                "all_permissions": self.all_permissions,
+                "findings": self.findings,
+                "counts": {
+                    "CRITICAL": sum(1 for f in self.findings.values() if isinstance(f, list) for x in f if isinstance(x, dict) and x.get("risk") == "CRITICAL"),
+                    "HIGH": sum(1 for f in self.findings.values() if isinstance(f, list) for x in f if isinstance(x, dict) and x.get("risk") == "HIGH"),
+                    "MEDIUM": 0,
+                    "LOW": 0
+                },
+                "risk_score": 0
+            }
+            self.findings["ml"] = clf.predict(interim)
+        except Exception as e:
+            print(f"[!] ML classifier error: {e}")
+            self.findings["ml"] = None
+
     def _build_results(self):
         all_findings = (
             self.findings["permissions"] +
@@ -412,7 +434,8 @@ class AnirodScanner:
             "total_issues": len(all_findings),
             "findings": self.findings,
             "all_permissions": self.all_permissions,
-            "analysis_engine": "Androguard 4.x (Bytecode)" if self.androguard_apk else "ZIP (Fallback)"
+            "analysis_engine": "Androguard 4.x (Bytecode)" if self.androguard_apk else "ZIP (Fallback)",
+            "ml": self.findings.get("ml")
         }
 
 
@@ -446,6 +469,9 @@ if __name__ == "__main__":
     print(f"Secrets:     {len(results['findings']['secrets'])}")
     print(f"Combos:      {len(results['findings']['dangerous_combos'])}")
     print(f"Taint Paths: {len(results['findings']['taint'])}")
+    ml = results.get("ml")
+    if ml:
+        print(f"ML Verdict:  {ml['verdict']} ({ml['confidence']}% confidence)")
 
     if verbose:
         print("\n--- DANGEROUS COMBOS ---")

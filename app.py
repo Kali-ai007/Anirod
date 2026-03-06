@@ -184,6 +184,8 @@ def demo():
         "summary": "This app has severe security issues and should NOT be used.",
         "counts": {"CRITICAL": 3, "HIGH": 4, "MEDIUM": 2, "LOW": 1},
         "total_issues": 10,
+        "analysis_engine": "Androguard 4.x (Bytecode)",
+        "ml": {"verdict": "BANKING_TROJAN", "confidence": 91.5, "color": "#dc2626", "description": "App matches banking trojan patterns. Can steal SMS OTPs and overlay fake login screens.", "top_predictions": [{"label": "BANKING_TROJAN", "confidence": 91.5}, {"label": "SPYWARE", "confidence": 5.0}, {"label": "DROPPER", "confidence": 3.5}]},
         "all_permissions": [
             "android.permission.READ_EXTERNAL_STORAGE",
             "android.permission.INTERNET",
