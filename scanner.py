@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from androguard.misc import AnalyzeAPK
 from ml_classifier import get_classifier
+from ai_explainer import explain_scan
 
 DANGEROUS_PERMISSIONS = {
     "android.permission.READ_EXTERNAL_STORAGE": {"risk": "HIGH", "description": "Can read ALL files on your device including photos, videos and documents", "category": "Storage"},
@@ -143,6 +144,7 @@ class AnirodScanner:
             "malware": [],
             "taint": [],
             "ml": None,
+            "ai_explanation": None,
         }
         self.file_contents = {}
         self.all_permissions = []
@@ -165,6 +167,7 @@ class AnirodScanner:
         self._scan_malware()
         self._scan_taint()
         self._scan_ml()
+        self._scan_ai()
         results = self._build_results()
         print(f"[+] Scan complete! Risk Score: {results['risk_score']}/100")
         return results
@@ -361,6 +364,26 @@ class AnirodScanner:
                     "sink_hits": detected_sinks[path["sink"]],
                 })
 
+    def _scan_ai(self):
+        try:
+            print(f"[*] Generating AI explanation via Mistral 7B...")
+            interim = {
+                "filename": self.filename,
+                "risk_score": 0,
+                "grade": "UNKNOWN",
+                "ml": self.findings.get("ml"),
+            "ai_explanation": self.findings.get("ai_explanation"),
+                "findings": self.findings,
+                "counts": {}
+            }
+            explanation = explain_scan(interim)
+            self.findings["ai_explanation"] = explanation
+            if explanation:
+                print(f"[+] AI explanation generated!")
+        except Exception as e:
+            print(f"[!] AI error: {e}")
+            self.findings["ai_explanation"] = None
+
     def _scan_ml(self):
         try:
             clf = get_classifier()
@@ -435,7 +458,8 @@ class AnirodScanner:
             "findings": self.findings,
             "all_permissions": self.all_permissions,
             "analysis_engine": "Androguard 4.x (Bytecode)" if self.androguard_apk else "ZIP (Fallback)",
-            "ml": self.findings.get("ml")
+            "ml": self.findings.get("ml"),
+            "ai_explanation": self.findings.get("ai_explanation")
         }
 
 
@@ -472,6 +496,9 @@ if __name__ == "__main__":
     ml = results.get("ml")
     if ml:
         print(f"ML Verdict:  {ml['verdict']} ({ml['confidence']}% confidence)")
+    ai = results.get("ai_explanation")
+    if ai:
+        print(f"\nAI Analysis: {ai[:200]}...")
 
     if verbose:
         print("\n--- DANGEROUS COMBOS ---")

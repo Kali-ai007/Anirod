@@ -1,4 +1,6 @@
 from pdf_report import generate_pdf
+from dotenv import load_dotenv
+load_dotenv()
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 import sqlite3
 import os

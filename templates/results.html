@@ -33,6 +33,22 @@
 </div>
 
 
+
+{% if results.ai_explanation %}
+<div class="card" style="margin-bottom:1.5rem; border: 1px solid #6366f133; background: linear-gradient(135deg, #1a1d27, #1e1b2e);">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+        <span style="font-size:1.5rem;">🤖</span>
+        <div>
+            <div style="font-weight:700; color:#a78bfa; font-size:1rem;">AI Security Analysis</div>
+            <div style="color:#64748b; font-size:0.78rem;">Powered by Mistral 7B — running locally on your hardware</div>
+        </div>
+    </div>
+    <p style="color:#e2e8f0; font-size:0.95rem; line-height:1.7; background:#0f1117; padding:1rem; border-radius:8px; border-left:3px solid #6366f1;">
+        {{ results.ai_explanation }}
+    </p>
+</div>
+{% endif %}
+
 <!-- ML VERDICT -->
 {% if results.ml %}
 <div class="card" style="margin-bottom:1.5rem; border: 1px solid {{ results.ml.color }}33;">
