@@ -245,6 +245,54 @@ def demo():
                     "occurrences": 3
                 }
             ],
+            "taint": [
+                {
+                    "name": "SMS to Network Exfiltration",
+                    "risk": "CRITICAL",
+                    "description": "SMS data flows into network transmission. Classic banking trojan behavior.",
+                    "source": "SMS",
+                    "sink": "HTTP_Transmit",
+                    "source_hits": ["getMessageBody", "SMS_RECEIVED"],
+                    "sink_hits": ["HttpURLConnection", "openConnection"]
+                },
+                {
+                    "name": "Credentials to Network",
+                    "risk": "CRITICAL",
+                    "description": "User credentials flow into network calls. Password may be transmitted insecurely.",
+                    "source": "Credentials",
+                    "sink": "HTTP_Transmit",
+                    "source_hits": ["getPassword"],
+                    "sink_hits": ["getOutputStream"]
+                }
+            ],
+            "malware": [
+                {
+                    "name": "SMS Stealer",
+                    "risk": "CRITICAL",
+                    "description": "SMS interception pattern. Banking trojans steal OTP codes this way.",
+                    "category": "Banking Trojan",
+                    "file": "__androguard_methods__",
+                    "occurrences": 3
+                },
+                {
+                    "name": "Device Fingerprinting",
+                    "risk": "HIGH",
+                    "description": "App collects unique device identifiers. Common in stalkerware.",
+                    "category": "Surveillance",
+                    "file": "__androguard_methods__",
+                    "occurrences": 2
+                }
+            ],
+            "owasp": [
+                {
+                    "id": "M5",
+                    "name": "Insecure Communication",
+                    "risk": "CRITICAL",
+                    "description": "App communicates over unencrypted HTTP.",
+                    "ref": "OWASP M5",
+                    "file": "__androguard_strings__"
+                }
+            ],
             "code_issues": [
                 {
                     "name": "SSL Verification Disabled",
